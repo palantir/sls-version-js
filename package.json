@@ -13,7 +13,7 @@
     "lint": "tslint 'src/**/*.ts*' --format codeFrame --project ./src/tsconfig.json",
     "lint-fix": "yarn lint -- --fix --project ./src/tsconfig.json",
     "test": "jest --config jest.config.json",
-    "circle-publish": "npm version $CIRCLE_TAG --no-git-tag-version && npm publish"
+    "circle-publish": "./scripts/circle-publish-npm"
   },
   "devDependencies": {
     "@blueprintjs/tslint-config": "^1.3.1",
