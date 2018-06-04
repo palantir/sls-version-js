@@ -1,0 +1,29 @@
+{
+  "name": "sls-version",
+  "version": "0.0.0",
+  "description": "Typescript utilities for manipulating SLS versions",
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "npm-run-all clean verify compile",
+    "clean": "rm -rf lib",
+    "verify": "npm-run-all lint test",
+    "compile": "tsc -p src",
+    "lint": "tslint 'src/**/*.ts*' --format codeFrame --project ./src/tsconfig.json",
+    "lint-fix": "yarn lint -- --fix --project ./src/tsconfig.json",
+    "test": "jest --config jest.config.json",
+    "circle-publish": "npm version $CIRCLE_TAG --no-git-tag-version && npm publish"
+  },
+  "devDependencies": {
+    "@blueprintjs/tslint-config": "^1.3.1",
+    "@types/jest": "^22.1.2",
+    "jest": "^22.2.1",
+    "npm-run-all": "^4.1.1",
+    "ts-jest": "^22.0.3",
+    "tslint": "^5.9.1",
+    "typescript": "~2.7.2"
+  },
+  "author": "Palantir Technologies, Inc.",
+  "license": "Apache-2.0"
+}
