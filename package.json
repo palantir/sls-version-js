@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "description": "Typescript utilities for manipulating SLS versions",
   "sideEffects": false,
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
     "build": "npm-run-all clean verify compile",
     "clean": "rm -rf lib",
