@@ -16,6 +16,7 @@
  */
 
 import * as sls from "./slsVersion";
+import * as slsMatcher from "./slsVersionMatcher";
 
 /**
  * Return true if `lhs > rhs`.
@@ -152,4 +153,45 @@ export function isReleaseCandidate(version: string) {
  */
 export function isSnapshot(version: string) {
     return sls.isSnapshot(sls.parse(version));
+}
+
+/**
+ * Determine if a version matcher string is a valid SLS version matcher
+ *
+ * @param versionMatcher Version matcher string to check
+ */
+export function isValidMatcher(versionMatcher: string) {
+    try {
+        slsMatcher.parseMatcher(versionMatcher);
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
+/**
+ * Determine if an SLS version matches a version matcher string
+ *
+ * @param version Version string to check
+ * @param versionMatcher Version matcher string to check against
+ */
+export function matches(version: string, versionMatcher: string) {
+    try {
+        const slsVersion = sls.parse(version);
+        const slsVersionMatcher = slsMatcher.parseMatcher(versionMatcher);
+        return slsMatcher.matches(slsVersion, slsVersionMatcher);
+    } catch (error) {
+        return false;
+    }
+}
+
+/**
+ * @return a positive number if version > versionMatcher, negative number if version < versionMatcher, 0 if they match
+ * @param version
+ * @param versionMatcher
+ */
+export function compareToMatcher(version: string, versionMatcher: string) {
+    const slsVersion = sls.parse(version);
+    const slsVersionMatcher = slsMatcher.parseMatcher(versionMatcher);
+    return slsMatcher.compare(slsVersion, slsVersionMatcher);
 }
