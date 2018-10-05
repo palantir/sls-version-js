@@ -16,7 +16,7 @@
  */
 
 import * as sls from "./slsVersion";
-import * as slsMatcher from "./slsVersionMatcher";
+import { SlsVersionMatcher } from "./slsVersionMatcher";
 
 /**
  * Return true if `lhs > rhs`.
@@ -160,13 +160,8 @@ export function isSnapshot(version: string) {
  *
  * @param versionMatcher Version matcher string to check
  */
-export function isValidMatcher(versionMatcher: string) {
-    try {
-        slsMatcher.SlsVersionMatcher.parse(versionMatcher);
-        return true;
-    } catch (error) {
-        return false;
-    }
+export function safeValueOf(versionMatcher: string) {
+    return SlsVersionMatcher.safeValueOf(versionMatcher);
 }
 
 /**
@@ -178,7 +173,7 @@ export function isValidMatcher(versionMatcher: string) {
 export function matches(version: string, versionMatcher: string) {
     try {
         const slsVersion = sls.parse(version);
-        const slsVersionMatcher = slsMatcher.SlsVersionMatcher.parse(versionMatcher);
+        const slsVersionMatcher = SlsVersionMatcher.parse(versionMatcher);
         return slsVersionMatcher.matches(slsVersion);
     } catch (error) {
         return false;
@@ -192,6 +187,6 @@ export function matches(version: string, versionMatcher: string) {
  */
 export function compareToMatcher(version: string, versionMatcher: string) {
     const slsVersion = sls.parse(version);
-    const slsVersionMatcher = slsMatcher.SlsVersionMatcher.parse(versionMatcher);
+    const slsVersionMatcher = SlsVersionMatcher.parse(versionMatcher);
     return slsVersionMatcher.compare(slsVersion);
 }
