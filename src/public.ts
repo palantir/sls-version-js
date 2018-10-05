@@ -162,7 +162,7 @@ export function isSnapshot(version: string) {
  */
 export function isValidMatcher(versionMatcher: string) {
     try {
-        slsMatcher.parseMatcher(versionMatcher);
+        slsMatcher.SlsVersionMatcher.parse(versionMatcher);
         return true;
     } catch (error) {
         return false;
@@ -178,8 +178,8 @@ export function isValidMatcher(versionMatcher: string) {
 export function matches(version: string, versionMatcher: string) {
     try {
         const slsVersion = sls.parse(version);
-        const slsVersionMatcher = slsMatcher.parseMatcher(versionMatcher);
-        return slsMatcher.matches(slsVersion, slsVersionMatcher);
+        const slsVersionMatcher = slsMatcher.SlsVersionMatcher.parse(versionMatcher);
+        return slsVersionMatcher.matches(slsVersion);
     } catch (error) {
         return false;
     }
@@ -192,6 +192,6 @@ export function matches(version: string, versionMatcher: string) {
  */
 export function compareToMatcher(version: string, versionMatcher: string) {
     const slsVersion = sls.parse(version);
-    const slsVersionMatcher = slsMatcher.parseMatcher(versionMatcher);
-    return slsMatcher.compare(slsVersion, slsVersionMatcher);
+    const slsVersionMatcher = slsMatcher.SlsVersionMatcher.parse(versionMatcher);
+    return slsVersionMatcher.compare(slsVersion);
 }

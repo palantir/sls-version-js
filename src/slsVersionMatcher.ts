@@ -28,110 +28,107 @@ export interface ISlsVersionMatcher {
     patch: number | undefined;
 }
 
-export function parseMatcher(versionMatcher: string): ISlsVersionMatcher {
-    const match = versionMatcher.match(/^([0-9]+|x)\.([0-9]+|x)\.([0-9]+|x)$/);
+export class SlsVersionMatcher implements ISlsVersionMatcher {
+    public static parse(versionMatcher: string) {
+        const match = versionMatcher.match(/^([0-9]+|x)\.([0-9]+|x)\.([0-9]+|x)$/);
 
-    if (match == null) {
-        throw new Error(`Invalid SLS version match: "${versionMatcher}"`);
-    }
+        if (match == null) {
+            throw new Error(`Invalid SLS version match: "${versionMatcher}"`);
+        }
 
-    const [, majorMatcher, minorMatcher, patchMatcher] = match;
-    const slsVersionMatcher: ISlsVersionMatcher = {
-        major: undefined,
-        minor: undefined,
-        patch: undefined,
-    };
-
-    if (majorMatcher !== undefined && majorMatcher !== "x") {
-        slsVersionMatcher.major = parseInt(majorMatcher, 10);
-    }
-
-    if (minorMatcher !== undefined && minorMatcher !== "x") {
-        slsVersionMatcher.minor = parseInt(minorMatcher, 10);
-    }
-
-    if (patchMatcher !== undefined && patchMatcher !== "x") {
-        slsVersionMatcher.patch = parseInt(patchMatcher, 10);
-    }
-
-    if (
-        slsVersionMatcher.patch !== undefined &&
-        (slsVersionMatcher.minor === undefined || slsVersionMatcher.major === undefined)
-    ) {
-        // String contains a pattern where major or minor version is underspecified.
-        // Example: x.x.2, 1.x.3, x.2.3
-        throw new Error("Not a valid matcher, a patch version is specified, yet a major or minor is not specified.");
-    }
-
-    if (slsVersionMatcher.minor !== undefined && slsVersionMatcher.major === undefined) {
-        // String contains a pattern where major version is underspecified. Example: x.2.x
-        throw new Error("Not a valid matcher, a minor version is specified, yet a major version is not specified.");
-    }
-
-    return slsVersionMatcher;
-}
-
-export function matches(version: ISlsVersion, versionMatcher: ISlsVersionMatcher) {
-    if (version.rc !== undefined) {
-        return false;
-    }
-
-    return compare(version, versionMatcher) === 0;
-}
-
-/**
- * @return a positive number if version > versionMatcher, negative number if version < versionMatcher, 0 if they match
- * @param version
- * @param versionMatcher
- */
-export function compare(version: ISlsVersion, versionMatcher: ISlsVersionMatcher) {
-    // we can just compare these 2 as SLS versions
-    if (
-        versionMatcher.major !== undefined &&
-        versionMatcher.minor !== undefined &&
-        versionMatcher.patch !== undefined
-    ) {
-        const versionMatcherVersion: ISlsVersion = {
-            hash: undefined,
-            major: versionMatcher.major,
-            minor: versionMatcher.minor,
-            patch: versionMatcher.patch,
-            rc: undefined,
-            snapshot: undefined,
-            unorderable: false,
+        const [, majorMatcher, minorMatcher, patchMatcher] = match;
+        const slsVersionMatcher: ISlsVersionMatcher = {
+            major: undefined,
+            minor: undefined,
+            patch: undefined,
         };
 
-        if (eq(version, versionMatcherVersion)) {
-            return 0;
-        } else if (gt(version, versionMatcherVersion)) {
-            return 1;
-        } else {
-            return -1;
+        if (majorMatcher !== undefined && majorMatcher !== "x") {
+            slsVersionMatcher.major = parseInt(majorMatcher, 10);
         }
+
+        if (minorMatcher !== undefined && minorMatcher !== "x") {
+            slsVersionMatcher.minor = parseInt(minorMatcher, 10);
+        }
+
+        if (patchMatcher !== undefined && patchMatcher !== "x") {
+            slsVersionMatcher.patch = parseInt(patchMatcher, 10);
+        }
+
+        if (
+            slsVersionMatcher.patch !== undefined &&
+            (slsVersionMatcher.minor === undefined || slsVersionMatcher.major === undefined)
+        ) {
+            // String contains a pattern where major or minor version is underspecified.
+            // Example: x.x.2, 1.x.3, x.2.3
+            throw new Error(
+                "Not a valid matcher, a patch version is specified, yet a major or minor is not specified.",
+            );
+        }
+
+        if (slsVersionMatcher.minor !== undefined && slsVersionMatcher.major === undefined) {
+            // String contains a pattern where major version is underspecified. Example: x.2.x
+            throw new Error("Not a valid matcher, a minor version is specified, yet a major version is not specified.");
+        }
+
+        return new SlsVersionMatcher(slsVersionMatcher.major, slsVersionMatcher.minor, slsVersionMatcher.patch);
     }
 
-    if (versionMatcher.major !== undefined) {
-        const comparison = compareNumbers(version.major, versionMatcher.major);
-        if (comparison !== 0) {
-            return comparison;
+    constructor(public major: number | undefined, public minor: number | undefined, public patch: number | undefined) {}
+
+    public matches(version: ISlsVersion) {
+        if (version.rc !== undefined) {
+            return false;
         }
+
+        return this.compare(version) === 0;
     }
 
-    if (versionMatcher.minor !== undefined) {
-        const comparison = compareNumbers(version.minor, versionMatcher.minor);
-        if (comparison !== 0) {
-            return comparison;
-        }
-    }
+    public compare(version: ISlsVersion) {
+        // we can just compare these 2 as SLS versions
+        if (this.major !== undefined && this.minor !== undefined && this.patch !== undefined) {
+            const versionMatcherVersion: ISlsVersion = {
+                hash: undefined,
+                major: this.major,
+                minor: this.minor,
+                patch: this.patch,
+                rc: undefined,
+                snapshot: undefined,
+                unorderable: false,
+            };
 
-    if (versionMatcher.patch !== undefined) {
-        const comparison = compareNumbers(version.patch, versionMatcher.patch);
-        if (comparison !== 0) {
-            return comparison;
+            if (eq(version, versionMatcherVersion)) {
+                return 0;
+            } else if (gt(version, versionMatcherVersion)) {
+                return 1;
+            } else {
+                return -1;
+            }
         }
-    }
 
-    return 0;
+        if (this.major !== undefined) {
+            const comparison = compareNumbers(version.major, this.major);
+            if (comparison !== 0) {
+                return comparison;
+            }
+        }
+
+        if (this.minor !== undefined) {
+            const comparison = compareNumbers(version.minor, this.minor);
+            if (comparison !== 0) {
+                return comparison;
+            }
+        }
+
+        if (this.patch !== undefined) {
+            const comparison = compareNumbers(version.patch, this.patch);
+            if (comparison !== 0) {
+                return comparison;
+            }
+        }
+
+        return 0;
+    }
 }
 
 function compareNumbers(lhs: number, rhs: number) {
