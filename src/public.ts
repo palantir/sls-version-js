@@ -16,6 +16,7 @@
  */
 
 import * as sls from "./slsVersion";
+export { SlsVersionMatcher } from "./slsVersionMatcher";
 
 /**
  * Return true if `lhs > rhs`.
@@ -134,6 +135,10 @@ export function isValid(version: string) {
     } catch (err) {
         return false;
     }
+}
+
+export function parse(version: string) {
+    return sls.parse(version);
 }
 
 /**
