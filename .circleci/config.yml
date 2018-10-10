@@ -16,8 +16,8 @@ jobs:
       - run: yarn install --non-interactive
       # Yarn's --frozen-lockfile option should do this, but it doesn't work in practice.
       - run:
-        name: Check if yarn.lock changed
-        command: git diff --exit-code
+          name: Check if yarn.lock changed
+          command: git diff --exit-code
       - save_cache:
           key: yarn-packages-{{ checksum "yarn.lock" }}
           paths:
