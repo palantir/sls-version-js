@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { SlsVersionMatcher } from "../public";
-import { parse } from "../slsVersion";
+import { parse, SlsVersionMatcher } from "../public";
 
 const m0 = "5.3.2";
 const m1 = "5.3.x";

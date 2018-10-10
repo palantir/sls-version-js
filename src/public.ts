@@ -137,6 +137,10 @@ export function isValid(version: string) {
     }
 }
 
+export function parse(version: string) {
+    return sls.parse(version);
+}
+
 /**
  * Determine if a version string is a release candidate.
  *
