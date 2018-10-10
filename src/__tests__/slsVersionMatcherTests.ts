@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import { compareToMatcher, isValidMatcher, matches } from "../public";
+import { SlsVersionMatcher } from "../public";
+import { parse } from "../slsVersion";
 
 const m0 = "5.3.2";
 const m1 = "5.3.x";
@@ -34,16 +35,23 @@ const v5 = "6.3.2";
 
 describe("SLS Version matcher", () => {
     it("Validates matcher correctly", () => {
-        expect(isValidMatcher(m0)).toBeTruthy();
-        expect(isValidMatcher(m1)).toBeTruthy();
-        expect(isValidMatcher(m2)).toBeFalsy();
-        expect(isValidMatcher(m3)).toBeFalsy();
-        expect(isValidMatcher(m4)).toBeTruthy();
-        expect(isValidMatcher(m5)).toBeFalsy();
-        expect(isValidMatcher(m6)).toBeTruthy();
+        expect(SlsVersionMatcher.safeValueOf(m0)).not.toBeNull();
+        expect(SlsVersionMatcher.safeValueOf(m1)).not.toBeNull();
+        expect(SlsVersionMatcher.safeValueOf(m2)).toBeNull();
+        expect(SlsVersionMatcher.safeValueOf(m3)).toBeNull();
+        expect(SlsVersionMatcher.safeValueOf(m4)).not.toBeNull();
+        expect(SlsVersionMatcher.safeValueOf(m5)).toBeNull();
+        expect(SlsVersionMatcher.safeValueOf(m6)).not.toBeNull();
     });
 
     it("Matches versions correctly", () => {
+        function matches(version: string, matcher: string) {
+            const slsVersionMatcher = SlsVersionMatcher.safeValueOf(matcher);
+            if (slsVersionMatcher == null) {
+                return false;
+            }
+            return slsVersionMatcher.matches(parse(version));
+        }
         expect(matches(v0, m0)).toBeFalsy();
         expect(matches(v1, m0)).toBeFalsy();
         expect(matches(v1, m4)).toBeTruthy();
@@ -62,6 +70,13 @@ describe("SLS Version matcher", () => {
     });
 
     it("Compares versions correctly", () => {
+        function compareToMatcher(version: string, matcher: string) {
+            const slsVersionMatcher = SlsVersionMatcher.safeValueOf(matcher);
+            if (slsVersionMatcher == null) {
+                return false;
+            }
+            return slsVersionMatcher.compare(parse(version));
+        }
         expect(compareToMatcher(v1, m0)).toBeLessThan(0);
         expect(compareToMatcher(v1, m1)).toBeLessThan(0);
         expect(compareToMatcher(v1, m4)).toEqual(0);

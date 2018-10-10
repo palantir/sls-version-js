@@ -82,7 +82,11 @@ export class SlsVersionMatcher implements ISlsVersionMatcher {
         return new SlsVersionMatcher(slsVersionMatcher.major, slsVersionMatcher.minor, slsVersionMatcher.patch);
     }
 
-    constructor(public major: number | undefined, public minor: number | undefined, public patch: number | undefined) {}
+    private constructor(
+        public major: number | undefined,
+        public minor: number | undefined,
+        public patch: number | undefined,
+    ) {}
 
     public matches(version: ISlsVersion) {
         if (version.rc !== undefined) {
