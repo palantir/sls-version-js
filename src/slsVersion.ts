@@ -39,20 +39,20 @@ export interface ISlsVersion {
 export class SlsVersion implements ISlsVersion {
     private static MATCHER = /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-rc([0-9]+))?(?:-([0-9]+)-g([a-f0-9]+))?(\.dirty)?$/;
 
-    public static safeValueOf(version: string): SlsVersion | null {
-        try {
-            return SlsVersion.of(version);
-        } catch (e) {
-            return null;
+    public static of(version: string): SlsVersion {
+        const slsVersion = SlsVersion.safeValueOf(version);
+        if (slsVersion == null) {
+            throw new Error(`Invalid SLS version: "${version}"`);
         }
+        return slsVersion;
     }
 
-    public static of(version: string): SlsVersion {
+    public static safeValueOf(version: string): SlsVersion | null {
         // Parse the version string as an SLS version
         const match = version.match(SlsVersion.MATCHER);
 
-        if (null == match) {
-            throw new Error(`Invalid SLS version: "${version}"`);
+        if (match == null) {
+            return null;
         }
 
         const [, major, minor, patch, rc, snapshot, hash, dirty] = match;
@@ -69,7 +69,7 @@ export class SlsVersion implements ISlsVersion {
             (hash != null && snapshot == null) ||
             (hash == null && snapshot != null)
         ) {
-            throw new Error(`Invalid SLS version: "${version}"`);
+            return null;
         }
 
         return new SlsVersion(
@@ -84,12 +84,7 @@ export class SlsVersion implements ISlsVersion {
     }
 
     public static isValid(version: string): boolean {
-        try {
-            SlsVersion.of(version);
-            return true;
-        } catch (e) {
-            return false;
-        }
+        return SlsVersion.safeValueOf(version) != null;
     }
 
     private constructor(

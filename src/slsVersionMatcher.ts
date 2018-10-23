@@ -29,6 +29,8 @@ export interface ISlsVersionMatcher {
 }
 
 export class SlsVersionMatcher implements ISlsVersionMatcher {
+    private static MATCHER = /^([0-9]+|x)\.([0-9]+|x)\.([0-9]+|x)$/;
+
     public static safeValueOf(versionMatcher: string): SlsVersionMatcher | null {
         try {
             return SlsVersionMatcher.of(versionMatcher);
@@ -38,7 +40,7 @@ export class SlsVersionMatcher implements ISlsVersionMatcher {
     }
 
     public static of(versionMatcher: string) {
-        const match = versionMatcher.match(/^([0-9]+|x)\.([0-9]+|x)\.([0-9]+|x)$/);
+        const match = versionMatcher.match(this.MATCHER);
 
         if (match == null) {
             throw new Error(`Invalid SLS version match: "${versionMatcher}"`);
