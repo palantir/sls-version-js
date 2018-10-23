@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import { parse, SlsVersionMatcher } from "../public";
+import { SlsVersion } from "../slsVersion";
+import { SlsVersionMatcher } from "../slsVersionMatcher";
 
 const m0 = "5.3.2";
 const m1 = "5.3.x";
@@ -25,12 +26,12 @@ const m4 = "5.x.x";
 const m5 = "x.x.2";
 const m6 = "x.x.x";
 
-const v0 = "5.0.0-rc0";
-const v1 = "5.0.0";
-const v2 = "5.3.2";
-const v3 = "5.3.4";
-const v4 = "5.4.2";
-const v5 = "6.3.2";
+const v0 = SlsVersion.of("5.0.0-rc0");
+const v1 = SlsVersion.of("5.0.0");
+const v2 = SlsVersion.of("5.3.2");
+const v3 = SlsVersion.of("5.3.4");
+const v4 = SlsVersion.of("5.4.2");
+const v5 = SlsVersion.of("6.3.2");
 
 describe("SLS Version matcher", () => {
     it("Validates matcher correctly", () => {
@@ -44,52 +45,38 @@ describe("SLS Version matcher", () => {
     });
 
     it("Matches versions correctly", () => {
-        function matches(version: string, matcher: string) {
-            const slsVersionMatcher = SlsVersionMatcher.safeValueOf(matcher);
-            if (slsVersionMatcher == null) {
-                return false;
-            }
-            return slsVersionMatcher.matches(parse(version));
-        }
-        expect(matches(v0, m0)).toBeFalsy();
-        expect(matches(v1, m0)).toBeFalsy();
-        expect(matches(v1, m4)).toBeTruthy();
-        expect(matches(v2, m0)).toBeTruthy();
-        expect(matches(v2, m1)).toBeTruthy();
-        expect(matches(v2, m4)).toBeTruthy();
-        expect(matches(v3, m0)).toBeFalsy();
-        expect(matches(v3, m1)).toBeTruthy();
-        expect(matches(v3, m4)).toBeTruthy();
-        expect(matches(v4, m0)).toBeFalsy();
-        expect(matches(v4, m1)).toBeFalsy();
-        expect(matches(v4, m4)).toBeTruthy();
-        expect(matches(v5, m0)).toBeFalsy();
-        expect(matches(v5, m1)).toBeFalsy();
-        expect(matches(v5, m4)).toBeFalsy();
+        expect(SlsVersionMatcher.of(m0).matches(v0)).toBeFalsy();
+        expect(SlsVersionMatcher.of(m0).matches(v1)).toBeFalsy();
+        expect(SlsVersionMatcher.of(m4).matches(v1)).toBeTruthy();
+        expect(SlsVersionMatcher.of(m0).matches(v2)).toBeTruthy();
+        expect(SlsVersionMatcher.of(m1).matches(v2)).toBeTruthy();
+        expect(SlsVersionMatcher.of(m4).matches(v2)).toBeTruthy();
+        expect(SlsVersionMatcher.of(m0).matches(v3)).toBeFalsy();
+        expect(SlsVersionMatcher.of(m1).matches(v3)).toBeTruthy();
+        expect(SlsVersionMatcher.of(m4).matches(v3)).toBeTruthy();
+        expect(SlsVersionMatcher.of(m0).matches(v4)).toBeFalsy();
+        expect(SlsVersionMatcher.of(m1).matches(v4)).toBeFalsy();
+        expect(SlsVersionMatcher.of(m4).matches(v4)).toBeTruthy();
+        expect(SlsVersionMatcher.of(m0).matches(v5)).toBeFalsy();
+        expect(SlsVersionMatcher.of(m1).matches(v5)).toBeFalsy();
+        expect(SlsVersionMatcher.of(m4).matches(v5)).toBeFalsy();
     });
 
     it("Compares versions correctly", () => {
-        function compareToMatcher(version: string, matcher: string) {
-            const slsVersionMatcher = SlsVersionMatcher.safeValueOf(matcher);
-            if (slsVersionMatcher == null) {
-                return false;
-            }
-            return slsVersionMatcher.compare(parse(version));
-        }
-        expect(compareToMatcher(v1, m0)).toBeLessThan(0);
-        expect(compareToMatcher(v1, m1)).toBeLessThan(0);
-        expect(compareToMatcher(v1, m4)).toEqual(0);
-        expect(compareToMatcher(v2, m0)).toEqual(0);
-        expect(compareToMatcher(v2, m1)).toEqual(0);
-        expect(compareToMatcher(v2, m4)).toEqual(0);
-        expect(compareToMatcher(v3, m0)).toBeGreaterThan(0);
-        expect(compareToMatcher(v3, m1)).toEqual(0);
-        expect(compareToMatcher(v3, m4)).toEqual(0);
-        expect(compareToMatcher(v4, m0)).toBeGreaterThan(0);
-        expect(compareToMatcher(v4, m1)).toBeGreaterThan(0);
-        expect(compareToMatcher(v4, m4)).toEqual(0);
-        expect(compareToMatcher(v5, m0)).toBeGreaterThan(0);
-        expect(compareToMatcher(v5, m1)).toBeGreaterThan(0);
-        expect(compareToMatcher(v5, m4)).toBeGreaterThan(0);
+        expect(SlsVersionMatcher.of(m0).compare(v1)).toBeGreaterThan(0);
+        expect(SlsVersionMatcher.of(m1).compare(v1)).toBeLessThan(0);
+        expect(SlsVersionMatcher.of(m4).compare(v1)).toEqual(0);
+        expect(SlsVersionMatcher.of(m0).compare(v2)).toEqual(0);
+        expect(SlsVersionMatcher.of(m1).compare(v2)).toEqual(0);
+        expect(SlsVersionMatcher.of(m4).compare(v2)).toEqual(0);
+        expect(SlsVersionMatcher.of(m0).compare(v3)).toBeLessThan(0);
+        expect(SlsVersionMatcher.of(m1).compare(v3)).toEqual(0);
+        expect(SlsVersionMatcher.of(m4).compare(v3)).toEqual(0);
+        expect(SlsVersionMatcher.of(m0).compare(v4)).toBeLessThan(0);
+        expect(SlsVersionMatcher.of(m1).compare(v4)).toBeGreaterThan(0);
+        expect(SlsVersionMatcher.of(m4).compare(v4)).toEqual(0);
+        expect(SlsVersionMatcher.of(m0).compare(v5)).toBeLessThan(0);
+        expect(SlsVersionMatcher.of(m1).compare(v5)).toBeGreaterThan(0);
+        expect(SlsVersionMatcher.of(m4).compare(v5)).toBeGreaterThan(0);
     });
 });

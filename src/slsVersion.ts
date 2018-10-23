@@ -32,127 +32,118 @@ export interface ISlsVersion {
     /** Snapshot number. */
     snapshot: number | undefined;
 
-    /** Snapshot hash string. */
-    hash: string | undefined;
-
-    /** Unorderable */
-    unorderable: boolean;
+    /** orderable */
+    orderable: boolean;
 }
 
-/** Parse an SLS version string. */
-export function parse(version: string): ISlsVersion {
-    // Parse the version string as an SLS version
-    const match = version.match(/^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-rc([0-9]+))?(?:-([0-9]+)-g([a-f0-9]+))?(\.dirty)?$/);
+export class SlsVersion implements ISlsVersion {
+    private static MATCHER = /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-rc([0-9]+))?(?:-([0-9]+)-g([a-f0-9]+))?(\.dirty)?$/;
 
-    if (null == match) {
-        throw new Error(`Invalid SLS version: "${version}"`);
+    public static of(version: string): SlsVersion {
+        const slsVersion = SlsVersion.safeValueOf(version);
+        if (slsVersion == null) {
+            throw new Error(`Invalid SLS version: "${version}"`);
+        }
+        return slsVersion;
     }
 
-    const [, major, minor, patch, rc, snapshot, hash, dirty] = match;
-    const parsedVersion = {
-        hash,
-        major: parseInt(major, undefined),
-        minor: parseInt(minor, undefined),
-        patch: parseInt(patch, undefined),
-        rc: undefined !== rc ? parseInt(rc, undefined) : undefined,
-        snapshot: undefined !== snapshot ? parseInt(snapshot, undefined) : undefined,
-        unorderable: Boolean(dirty),
-    };
+    public static safeValueOf(version: string): SlsVersion | null {
+        // Parse the version string as an SLS version
+        const match = version.match(SlsVersion.MATCHER);
 
-    if (!isValid(parsedVersion)) {
-        throw new Error(`Invalid SLS version: "${version}"`);
+        if (match == null) {
+            return null;
+        }
+
+        const [, major, minor, patch, rc, snapshot, hash, dirty] = match;
+        const majorVersion = parseInt(major, undefined);
+        const minorVersion = parseInt(minor, undefined);
+        const patchVersion = parseInt(patch, undefined);
+        const rcNumber = rc != null ? parseInt(rc, undefined) : undefined;
+        const snapshotNumber = snapshot != null ? parseInt(snapshot, undefined) : undefined;
+
+        if (
+            major == null ||
+            minor == null ||
+            patch == null ||
+            (hash != null && snapshot == null) ||
+            (hash == null && snapshot != null)
+        ) {
+            return null;
+        }
+
+        return new SlsVersion(
+            version,
+            majorVersion,
+            minorVersion,
+            patchVersion,
+            rcNumber,
+            snapshotNumber,
+            !Boolean(dirty),
+        );
     }
 
-    return parsedVersion;
-}
-
-/** Returns true if the parsed SLS version is valid. */
-export function isValid(version: ISlsVersion) {
-    return (
-        null != version.major &&
-        null != version.minor &&
-        null != version.patch &&
-        ((null == version.hash && null == version.snapshot) || (null !== version.hash && null != version.snapshot))
-    );
-}
-
-/** Determine if a version is a release candidate. */
-export function isReleaseCandidate(version: ISlsVersion): version is ISlsVersion & { rc: number } {
-    return null != version.rc;
-}
-
-/** Determine if a version is a snapshot version. */
-export function isSnapshot(version: ISlsVersion): version is ISlsVersion & { snapshot: number } {
-    return null != version.snapshot;
-}
-
-/** Determine if a version is an RC but not a snapshot. */
-export function isNormalReleaseCandidate(
-    version: ISlsVersion,
-): version is ISlsVersion & { rc: number; snapshot: undefined } {
-    return isReleaseCandidate(version) && !isSnapshot(version);
-}
-
-/** Determine if a version is neither an RC or a snapshot. */
-export function isNormalRelease(version: ISlsVersion): version is ISlsVersion & { rc: undefined; snapshot: undefined } {
-    return !isReleaseCandidate(version) && !isSnapshot(version);
-}
-
-/** Determine if a version is a snapshot but not an RC. */
-export function isNormalSnapshot(version: ISlsVersion): version is ISlsVersion & { rc: undefined; snapshot: number } {
-    return !isReleaseCandidate(version) && isSnapshot(version);
-}
-
-/** Determine if a version is both a snapshot and an RC. */
-export function isReleaseCandidateSnapshot(
-    version: ISlsVersion,
-): version is ISlsVersion & { rc: number; snapshot: number } {
-    return isReleaseCandidate(version) && isSnapshot(version);
-}
-
-/** Returns true if `lhs > rhs`. */
-export function gt(lhs: ISlsVersion, rhs: ISlsVersion) {
-    if (lhs.unorderable || rhs.unorderable) {
-        throw Error("Attempting to comparing unorderable versions");
-    } else if (lhs.major !== rhs.major) {
-        return lhs.major > rhs.major;
-    } else if (lhs.minor !== rhs.minor) {
-        return lhs.minor > rhs.minor;
-    } else if (lhs.patch !== rhs.patch) {
-        return lhs.patch > rhs.patch;
-    } else if (isNormalSnapshot(lhs) && isNormalRelease(rhs)) {
-        return true;
-    } else if (isNormalRelease(lhs) && isNormalReleaseCandidate(rhs)) {
-        return true;
-    } else if (isNormalSnapshot(lhs) && isNormalSnapshot(rhs) && lhs.snapshot !== rhs.snapshot) {
-        return lhs.snapshot > rhs.snapshot;
-    } else if (isReleaseCandidate(lhs) && isReleaseCandidate(rhs) && lhs.rc !== rhs.rc) {
-        return lhs.rc > rhs.rc;
-    } else if (isReleaseCandidateSnapshot(lhs) && isNormalReleaseCandidate(rhs)) {
-        return true;
-    } else if (isReleaseCandidateSnapshot(lhs) && isReleaseCandidateSnapshot(rhs)) {
-        return lhs.snapshot > rhs.snapshot;
-    } else {
-        return false;
+    public static isValid(version: string): boolean {
+        return SlsVersion.safeValueOf(version) != null;
     }
-}
 
-/** Return true if `lhs` = `rhs`. */
-export function eq(lhs: ISlsVersion, rhs: ISlsVersion) {
-    return !gt(lhs, rhs) && !gt(rhs, lhs);
-}
+    private constructor(
+        private readonly value: string,
+        public readonly major: number,
+        public readonly minor: number,
+        public readonly patch: number,
+        public readonly rc: number | undefined,
+        public readonly snapshot: number | undefined,
+        public readonly orderable: boolean,
+    ) {}
 
-/** Return true if `lhs >= rhs`. */
-export function gte(lhs: ISlsVersion, rhs: ISlsVersion) {
-    return gt(lhs, rhs) || eq(lhs, rhs);
-}
+    public compare(other: ISlsVersion): -1 | 0 | 1 {
+        if (!this.orderable || !other.orderable) {
+            throw Error("Attempting to comparing unorderable versions");
+        } else if (this.major !== other.major) {
+            return this.major > other.major ? 1 : -1;
+        } else if (this.minor !== other.minor) {
+            return this.minor > other.minor ? 1 : -1;
+        } else if (this.patch !== other.patch) {
+            return this.patch > other.patch ? 1 : -1;
+        }
 
-/** Returns true if `lhs < rhs`. */
-export function lt(lhs: ISlsVersion, rhs: ISlsVersion) {
-    return gt(rhs, lhs) && !eq(lhs, rhs);
-}
+        const compareRc = SlsVersion.compareNullable(this.rc, other.rc, 1);
+        if (compareRc !== 0) {
+            return compareRc;
+        }
 
-/** Returns true if `lhs <= rhs`. */
-export function lte(lhs: ISlsVersion, rhs: ISlsVersion) {
-    return gt(rhs, lhs) || eq(lhs, rhs);
+        const compareSnapshot = SlsVersion.compareNullable(this.snapshot, other.snapshot, -1);
+        if (
+            compareSnapshot !== 0 ||
+            (this.snapshot == null && other.snapshot == null) ||
+            (this.snapshot != null && other.snapshot != null)
+        ) {
+            return compareSnapshot;
+        }
+
+        if (this.snapshot != null) {
+            return 1;
+        } else if (other.snapshot != null) {
+            return -1;
+        }
+
+        return 0;
+    }
+
+    public toString(): string {
+        return this.value;
+    }
+
+    private static compareNullable(a: number | undefined, b: number | undefined, defaultValue: -1 | 1): -1 | 0 | 1 {
+        if (a === b) {
+            return 0;
+        } else if (a == null || b == null) {
+            if (a == null) {
+                return defaultValue;
+            }
+            return -defaultValue as -1 | 0 | 1;
+        }
+        return a > b ? 1 : -1;
+    }
 }
