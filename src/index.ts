@@ -15,4 +15,5 @@
  * limitations under the License.
  */
 
-export * from "./public";
+export * from "./slsVersion";
+export * from "./slsVersionMatcher";
