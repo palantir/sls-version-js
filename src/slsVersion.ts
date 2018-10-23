@@ -113,12 +113,12 @@ export class SlsVersion implements ISlsVersion {
             return this.patch > other.patch ? 1 : -1;
         }
 
-        const compareRc = compareNullable(this.rc, other.rc, 1);
+        const compareRc = SlsVersion.compareNullable(this.rc, other.rc, 1);
         if (compareRc !== 0) {
             return compareRc;
         }
 
-        const compareSnapshot = compareNullable(this.snapshot, other.snapshot, -1);
+        const compareSnapshot = SlsVersion.compareNullable(this.snapshot, other.snapshot, -1);
         if (
             compareSnapshot !== 0 ||
             (this.snapshot == null && other.snapshot == null) ||
@@ -139,16 +139,16 @@ export class SlsVersion implements ISlsVersion {
     public toString(): string {
         return this.value;
     }
-}
 
-function compareNullable(a: number | undefined, b: number | undefined, defaultValue: -1 | 1): -1 | 0 | 1 {
-    if (a === b) {
-        return 0;
-    } else if (a == null || b == null) {
-        if (a == null) {
-            return defaultValue;
+    private static compareNullable(a: number | undefined, b: number | undefined, defaultValue: -1 | 1): -1 | 0 | 1 {
+        if (a === b) {
+            return 0;
+        } else if (a == null || b == null) {
+            if (a == null) {
+                return defaultValue;
+            }
+            return -defaultValue as -1 | 0 | 1;
         }
-        return -defaultValue as -1 | 0 | 1;
+        return a > b ? 1 : -1;
     }
-    return a > b ? 1 : -1;
 }
