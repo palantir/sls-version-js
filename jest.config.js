@@ -1,4 +1,4 @@
-{
+module.exports = {
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
     },
@@ -13,4 +13,4 @@
             "tsConfigFile": "src/tsconfig.json"
         }
     }
-}
+};

@@ -12,7 +12,7 @@
     "compile": "tsc -p src",
     "lint": "tslint 'src/**/*.ts*' --format codeFrame --project ./src/tsconfig.json",
     "lint-fix": "yarn lint -- --fix --project ./src/tsconfig.json",
-    "test": "jest --config jest.config.json",
+    "test": "jest --config jest.config.js",
     "circle-publish": "./scripts/circle-publish-npm"
   },
   "devDependencies": {

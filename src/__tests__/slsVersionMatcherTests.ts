@@ -18,65 +18,79 @@
 import { SlsVersion } from "../slsVersion";
 import { SlsVersionMatcher } from "../slsVersionMatcher";
 
-const m0 = "5.3.2";
-const m1 = "5.3.x";
-const m2 = "5.x.2";
-const m3 = "x.3.2";
-const m4 = "5.x.x";
-const m5 = "x.x.2";
-const m6 = "x.x.x";
-
-const v0 = SlsVersion.of("5.0.0-rc0");
-const v1 = SlsVersion.of("5.0.0");
-const v2 = SlsVersion.of("5.3.2");
-const v3 = SlsVersion.of("5.3.4");
-const v4 = SlsVersion.of("5.4.2");
-const v5 = SlsVersion.of("6.3.2");
-
 describe("SLS Version matcher", () => {
-    it("Validates matcher correctly", () => {
-        expect(SlsVersionMatcher.safeValueOf(m0)).not.toBeNull();
-        expect(SlsVersionMatcher.safeValueOf(m1)).not.toBeNull();
-        expect(SlsVersionMatcher.safeValueOf(m2)).toBeNull();
-        expect(SlsVersionMatcher.safeValueOf(m3)).toBeNull();
-        expect(SlsVersionMatcher.safeValueOf(m4)).not.toBeNull();
-        expect(SlsVersionMatcher.safeValueOf(m5)).toBeNull();
-        expect(SlsVersionMatcher.safeValueOf(m6)).not.toBeNull();
+    it("parses valid matchers", () => {
+        expect(SlsVersionMatcher.of("x.x.x")).toEqual({ value: "x.x.x" });
+        expect(SlsVersionMatcher.of("1.x.x")).toEqual({ value: "1.x.x", major: 1 });
+        expect(SlsVersionMatcher.of("1.2.x")).toEqual({ value: "1.2.x", major: 1, minor: 2 });
+        expect(SlsVersionMatcher.of("01.02.x")).toEqual({ value: "01.02.x", major: 1, minor: 2 });
+        expect(SlsVersionMatcher.of("1.2.3")).toEqual({ value: "1.2.3", major: 1, minor: 2, patch: 3 });
+    });
+
+    it("fails to parse invalid matchers", () => {
+        expect(SlsVersionMatcher.safeValueOf("x.x.x-foo")).toBeNull();
+        expect(SlsVersionMatcher.safeValueOf("1.x.x.x")).toBeNull();
+        expect(SlsVersionMatcher.safeValueOf("1x.x.x")).toBeNull();
+        expect(SlsVersionMatcher.safeValueOf("x.1x.x")).toBeNull();
+        expect(SlsVersionMatcher.safeValueOf("x.x.1x")).toBeNull();
+        expect(SlsVersionMatcher.safeValueOf("x.x.x.x")).toBeNull();
+        expect(SlsVersionMatcher.safeValueOf("x.y.z")).toBeNull();
+        expect(SlsVersionMatcher.safeValueOf("1.2.3-x")).toBeNull();
+        expect(SlsVersionMatcher.safeValueOf("1.2.3-rcx")).toBeNull();
+        expect(SlsVersionMatcher.safeValueOf("1.2.3-rc1")).toBeNull();
+        expect(SlsVersionMatcher.safeValueOf("1.2.3-rc1-x-gabcde")).toBeNull();
+        expect(SlsVersionMatcher.safeValueOf("1.2.3-x-gabcde")).toBeNull();
+        expect(SlsVersionMatcher.safeValueOf("x.2.3")).toBeNull();
+        expect(SlsVersionMatcher.safeValueOf("1.x.3")).toBeNull();
+        expect(SlsVersionMatcher.safeValueOf("x.x.3")).toBeNull();
+        expect(SlsVersionMatcher.safeValueOf("x.2.x")).toBeNull();
     });
 
     it("Matches versions correctly", () => {
-        expect(SlsVersionMatcher.of(m0).matches(v0)).toBeFalsy();
-        expect(SlsVersionMatcher.of(m0).matches(v1)).toBeFalsy();
-        expect(SlsVersionMatcher.of(m4).matches(v1)).toBeTruthy();
-        expect(SlsVersionMatcher.of(m0).matches(v2)).toBeTruthy();
-        expect(SlsVersionMatcher.of(m1).matches(v2)).toBeTruthy();
-        expect(SlsVersionMatcher.of(m4).matches(v2)).toBeTruthy();
-        expect(SlsVersionMatcher.of(m0).matches(v3)).toBeFalsy();
-        expect(SlsVersionMatcher.of(m1).matches(v3)).toBeTruthy();
-        expect(SlsVersionMatcher.of(m4).matches(v3)).toBeTruthy();
-        expect(SlsVersionMatcher.of(m0).matches(v4)).toBeFalsy();
-        expect(SlsVersionMatcher.of(m1).matches(v4)).toBeFalsy();
-        expect(SlsVersionMatcher.of(m4).matches(v4)).toBeTruthy();
-        expect(SlsVersionMatcher.of(m0).matches(v5)).toBeFalsy();
-        expect(SlsVersionMatcher.of(m1).matches(v5)).toBeFalsy();
-        expect(SlsVersionMatcher.of(m4).matches(v5)).toBeFalsy();
+        expect(SlsVersionMatcher.of("x.x.x").matches(SlsVersion.of("0.0.0"))).toBeTruthy();
+        expect(SlsVersionMatcher.of("x.x.x").matches(SlsVersion.of("2.3.4"))).toBeTruthy();
+        expect(SlsVersionMatcher.of("x.x.x").matches(SlsVersion.of("2.3.4-5-gabcdef"))).toBeFalsy();
+        expect(SlsVersionMatcher.of("x.x.x").matches(SlsVersion.of("2.3.4-rc5"))).toBeFalsy();
+        expect(SlsVersionMatcher.of("x.x.x").matches(SlsVersion.of("2.3.4-rc3-1-gabc"))).toBeFalsy();
+
+        expect(SlsVersionMatcher.of("2.x.x").matches(SlsVersion.of("2.3.4"))).toBeTruthy();
+        expect(SlsVersionMatcher.of("2.x.x").matches(SlsVersion.of("2.3.4-5-gabcdef"))).toBeFalsy();
+        expect(SlsVersionMatcher.of("2.x.x").matches(SlsVersion.of("2.3.4-rc5"))).toBeFalsy();
+        expect(SlsVersionMatcher.of("2.x.x").matches(SlsVersion.of("2.3.4-rc3-1-gcba"))).toBeFalsy();
+        expect(SlsVersionMatcher.of("2.x.x").matches(SlsVersion.of("1.3.4"))).toBeFalsy();
+        expect(SlsVersionMatcher.of("2.x.x").matches(SlsVersion.of("3.3.4"))).toBeFalsy();
+
+        expect(SlsVersionMatcher.of("2.3.x").matches(SlsVersion.of("2.3.4"))).toBeTruthy();
+        expect(SlsVersionMatcher.of("2.3.x").matches(SlsVersion.of("2.3.4-5-gabcdef"))).toBeFalsy();
+        expect(SlsVersionMatcher.of("2.3.x").matches(SlsVersion.of("2.3.4-rc5"))).toBeFalsy();
+        expect(SlsVersionMatcher.of("2.3.x").matches(SlsVersion.of("2.3.4-rc3-1-gbbb"))).toBeFalsy();
+        expect(SlsVersionMatcher.of("2.3.x").matches(SlsVersion.of("2.2.4"))).toBeFalsy();
+        expect(SlsVersionMatcher.of("2.3.x").matches(SlsVersion.of("2.4.4"))).toBeFalsy();
+        expect(SlsVersionMatcher.of("2.3.x").matches(SlsVersion.of("1.3.4"))).toBeFalsy();
+        expect(SlsVersionMatcher.of("2.3.x").matches(SlsVersion.of("3.3.4"))).toBeFalsy();
+
+        expect(SlsVersionMatcher.of("1.2.x").matches(SlsVersion.of("1.2.3-rc1"))).toBeFalsy();
+
+        expect(SlsVersionMatcher.of("1.2.3").matches(SlsVersion.of("1.2.3"))).toBeTruthy();
+        expect(SlsVersionMatcher.of("1.2.3").matches(SlsVersion.of("1.2.3-rc1"))).toBeFalsy();
+        expect(SlsVersionMatcher.of("1.2.3").matches(SlsVersion.of("2.3.4-rc3-1-gbbb"))).toBeFalsy();
     });
 
     it("Compares versions correctly", () => {
-        expect(SlsVersionMatcher.of(m0).compare(v1)).toBeGreaterThan(0);
-        expect(SlsVersionMatcher.of(m1).compare(v1)).toBeLessThan(0);
-        expect(SlsVersionMatcher.of(m4).compare(v1)).toEqual(0);
-        expect(SlsVersionMatcher.of(m0).compare(v2)).toEqual(0);
-        expect(SlsVersionMatcher.of(m1).compare(v2)).toEqual(0);
-        expect(SlsVersionMatcher.of(m4).compare(v2)).toEqual(0);
-        expect(SlsVersionMatcher.of(m0).compare(v3)).toBeLessThan(0);
-        expect(SlsVersionMatcher.of(m1).compare(v3)).toEqual(0);
-        expect(SlsVersionMatcher.of(m4).compare(v3)).toEqual(0);
-        expect(SlsVersionMatcher.of(m0).compare(v4)).toBeLessThan(0);
-        expect(SlsVersionMatcher.of(m1).compare(v4)).toBeGreaterThan(0);
-        expect(SlsVersionMatcher.of(m4).compare(v4)).toEqual(0);
-        expect(SlsVersionMatcher.of(m0).compare(v5)).toBeLessThan(0);
-        expect(SlsVersionMatcher.of(m1).compare(v5)).toBeGreaterThan(0);
-        expect(SlsVersionMatcher.of(m4).compare(v5)).toBeGreaterThan(0);
+        expect(SlsVersionMatcher.of("x.x.x").compare(SlsVersion.of("0.0.0"))).toEqual(0);
+
+        expect(SlsVersionMatcher.of("1.x.x").compare(SlsVersion.of("0.0.0"))).toBeGreaterThan(0);
+        expect(SlsVersionMatcher.of("1.x.x").compare(SlsVersion.of("1.0.0"))).toEqual(0);
+        expect(SlsVersionMatcher.of("1.x.x").compare(SlsVersion.of("2.0.0"))).toBeLessThan(0);
+
+        expect(SlsVersionMatcher.of("1.2.x").compare(SlsVersion.of("1.1.0"))).toBeGreaterThan(0);
+        expect(SlsVersionMatcher.of("1.2.x").compare(SlsVersion.of("1.2.3"))).toEqual(0);
+        expect(SlsVersionMatcher.of("1.2.x").compare(SlsVersion.of("1.3.2"))).toBeLessThan(0);
+
+        expect(SlsVersionMatcher.of("1.2.3").compare(SlsVersion.of("1.2.4"))).toBeLessThan(0);
+        expect(SlsVersionMatcher.of("1.2.3").compare(SlsVersion.of("1.2.3-rc1"))).toBeGreaterThan(0);
+
+        expect(SlsVersionMatcher.of("1.2.x").compare(SlsVersion.of("1.2.3-rc1"))).toEqual(0);
+        expect(SlsVersionMatcher.of("1.x.x").compare(SlsVersion.of("2.0.0"))).toBeLessThan(0);
     });
 });
