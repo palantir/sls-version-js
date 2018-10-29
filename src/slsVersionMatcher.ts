@@ -97,7 +97,7 @@ export class SlsVersionMatcher implements ISlsVersionMatcher {
     ) {}
 
     public matches(version: ISlsVersion) {
-        if (version.rc !== undefined) {
+        if (version.rc != null || version.snapshot != null) {
             return false;
         }
 
@@ -111,21 +111,21 @@ export class SlsVersionMatcher implements ISlsVersionMatcher {
         }
 
         if (this.major !== undefined) {
-            const comparison = compareNumbers(version.major, this.major);
+            const comparison = compareNumbers(this.major, version.major);
             if (comparison !== 0) {
                 return comparison;
             }
         }
 
         if (this.minor !== undefined) {
-            const comparison = compareNumbers(version.minor, this.minor);
+            const comparison = compareNumbers(this.minor, version.minor);
             if (comparison !== 0) {
                 return comparison;
             }
         }
 
         if (this.patch !== undefined) {
-            const comparison = compareNumbers(version.patch, this.patch);
+            const comparison = compareNumbers(this.patch, version.patch);
             if (comparison !== 0) {
                 return comparison;
             }
