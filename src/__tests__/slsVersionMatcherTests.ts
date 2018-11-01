@@ -93,4 +93,10 @@ describe("SLS Version matcher", () => {
         expect(SlsVersionMatcher.of("1.2.x").compare(SlsVersion.of("1.2.3-rc1"))).toEqual(0);
         expect(SlsVersionMatcher.of("1.x.x").compare(SlsVersion.of("2.0.0"))).toBeLessThan(0);
     });
+
+    it("Compares matchers correctly", () => {
+        expect(SlsVersionMatcher.of("x.x.x").compare(SlsVersionMatcher.of("1.x.x"))).toBeGreaterThan(0);
+        expect(SlsVersionMatcher.of("1.x.x").compare(SlsVersionMatcher.of("1.2.x"))).toBeGreaterThan(0);
+        expect(SlsVersionMatcher.of("1.2.3").compare(SlsVersionMatcher.of("1.2.1"))).toBeGreaterThan(0);
+    });
 });

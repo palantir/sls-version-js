@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { compareNullable } from "./comparison";
+
 /** Parsed SLS version. */
 export interface ISlsVersion {
     /** Major version number. */
@@ -38,6 +40,8 @@ export interface ISlsVersion {
 
 export class SlsVersion implements ISlsVersion {
     private static MATCHER = /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-rc([0-9]+))?(?:-([0-9]+)-g([a-f0-9]+))?(\.dirty)?$/;
+    private static ABSENT_IS_GREATER = (t?: number) => (t == null ? Number.MAX_SAFE_INTEGER : t);
+    private static ABSENT_IS_LESSER = (t?: number) => (t == null ? Number.MIN_VALUE : t);
 
     public static of(version: string): SlsVersion {
         const slsVersion = SlsVersion.safeValueOf(version);
@@ -108,12 +112,12 @@ export class SlsVersion implements ISlsVersion {
             return this.patch > other.patch ? 1 : -1;
         }
 
-        const compareRc = SlsVersion.compareNullable(this.rc, other.rc, 1);
+        const compareRc = compareNullable(this.rc, other.rc, SlsVersion.ABSENT_IS_GREATER);
         if (compareRc !== 0) {
             return compareRc;
         }
 
-        const compareSnapshot = SlsVersion.compareNullable(this.snapshot, other.snapshot, -1);
+        const compareSnapshot = compareNullable(this.snapshot, other.snapshot, SlsVersion.ABSENT_IS_LESSER);
         if (
             compareSnapshot !== 0 ||
             (this.snapshot == null && other.snapshot == null) ||
@@ -133,17 +137,5 @@ export class SlsVersion implements ISlsVersion {
 
     public toString(): string {
         return this.value;
-    }
-
-    private static compareNullable(a: number | undefined, b: number | undefined, defaultValue: -1 | 1): -1 | 0 | 1 {
-        if (a === b) {
-            return 0;
-        } else if (a == null || b == null) {
-            if (a == null) {
-                return defaultValue;
-            }
-            return -defaultValue as -1 | 0 | 1;
-        }
-        return a > b ? 1 : -1;
     }
 }

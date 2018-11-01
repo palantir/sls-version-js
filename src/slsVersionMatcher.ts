@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { compareNullable } from "./comparison";
 import { ISlsVersion, SlsVersion } from "./slsVersion";
 
 export interface ISlsVersionMatcher {
@@ -30,6 +31,7 @@ export interface ISlsVersionMatcher {
 
 export class SlsVersionMatcher implements ISlsVersionMatcher {
     private static MATCHER = /^([0-9]+|x)\.([0-9]+|x)\.([0-9]+|x)$/;
+    private static ABSENT_IS_GREATER = (t?: number) => (t == null ? Number.MAX_SAFE_INTEGER : t);
 
     public static safeValueOf(versionMatcher: string): SlsVersionMatcher | null {
         try {
@@ -104,8 +106,31 @@ export class SlsVersionMatcher implements ISlsVersionMatcher {
         return this.compare(version) === 0;
     }
 
-    public compare(version: ISlsVersion): -1 | 0 | 1 {
-        // we can just compare these 2 as SLS versions
+    public compare(version: ISlsVersion | ISlsVersionMatcher): -1 | 0 | 1 {
+        if (isSlsVersion(version)) {
+            return this.compareSlsVersion(version);
+        }
+
+        let comparison: -1 | 0 | 1;
+        comparison = compareNullable(this.major, version.major, SlsVersionMatcher.ABSENT_IS_GREATER);
+        if (comparison !== 0) {
+            return comparison;
+        }
+
+        comparison = compareNullable(this.minor, version.minor, SlsVersionMatcher.ABSENT_IS_GREATER);
+        if (comparison !== 0) {
+            return comparison;
+        }
+
+        comparison = compareNullable(this.patch, version.patch, SlsVersionMatcher.ABSENT_IS_GREATER);
+        if (comparison !== 0) {
+            return comparison;
+        }
+
+        return 0;
+    }
+
+    private compareSlsVersion(version: ISlsVersion): -1 | 0 | 1 {
         if (this.major !== undefined && this.minor !== undefined && this.patch !== undefined) {
             return SlsVersion.of(this.value).compare(version);
         }
@@ -123,20 +148,22 @@ export class SlsVersionMatcher implements ISlsVersionMatcher {
                 return comparison;
             }
         }
-
         if (this.patch !== undefined) {
             const comparison = compareNumbers(this.patch, version.patch);
             if (comparison !== 0) {
                 return comparison;
             }
         }
-
         return 0;
     }
 
     public toString(): string {
         return this.value;
     }
+}
+
+function isSlsVersion(version: ISlsVersion | ISlsVersionMatcher): version is ISlsVersion {
+    return (version as any).orderable != null;
 }
 
 function compareNumbers(lhs: number, rhs: number) {
