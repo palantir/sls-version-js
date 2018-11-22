@@ -2,24 +2,13 @@
 # slsversion
 Typescript utilities for manipulating SLS versions.
 
-## Overview
-Comparison:
-+ `eq(lhs, rhs)` — `lhs == rhs`  
-+ `gt(lhs, rhs)` — `lhs > rhs`
-+ `gte(lhs, rhs)` — `lhs >= rhs`
-+ `lt(lhs, rhs)` — `lhs < rhs`
-+ `lte(lhs, rhs)` — `lhs <= rhs`
+# Overview
 
-Parsing:
-
-+ `isValid()` — Determine if a version string is valid
-+ `major()` — Extract the major version number from a version string
-+ `minor()` — Extract the minor version number from a version string
-+ `patch()` — Extract the patch version number from a version string
-+ `rc()` — Extract the release candidate number from a version string
-+ `snapshot()`— Extract the snapshot number from a version string
-+ `isReleaseCandidate()` — Returns true of the version is a release candidate
-+ `isSnapshot()` — Returns true if the version is a snapshot version
+* `SlsVersion` - a class that represents a valid SLS version
+* `SlsVersionMatcher` - a matcher than supports matching specific ranges of versions, for example:
+  * `1.2.3` matches only the version `1.2.3`
+  * `1.2.x` matches any SLS version that starts with `1.2.`
+  * `1.x.x` matches any SLS version that starts with `1.`
 
 # SLS Product Version Specification
 
