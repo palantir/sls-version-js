@@ -52,9 +52,9 @@ acorn-globals@^4.1.0:
     acorn "^5.0.0"
 
 acorn@^5.0.0, acorn@^5.3.0:
-  version "5.6.0"
-  resolved "https://registry.yarnpkg.com/acorn/-/acorn-5.6.0.tgz#572bedb377a1c61b7a289e72b8c5cfeb7baaf0bf"
-  integrity sha512-QatFQ4C0n+PLqemyC6zXEv04tSqRR0hRqe+uGKPEVgKe2G8kl8wJvHzRYWwz6vqqEqt6idPVMFojZ4P1zlyAzQ==
+  version "5.7.4"
+  resolved "https://registry.yarnpkg.com/acorn/-/acorn-5.7.4.tgz#3e8d8a9947d0599a1796d10225d7432f4a4acf5e"
+  integrity sha512-1D++VG7BhrtvQpNbBzovKNc1FLGGEE/oGe7b9xJm/RFHMBeUaUGpluV9RLjZa47YFdPcDAenEYuq9pQPcMdLJg==
 
 ajv@^5.1.0:
   version "5.5.2"
@@ -1007,7 +1007,7 @@ esutils@^2.0.2:
 
 event-stream@~3.3.0:
   version "3.3.4"
-  resolved "http://registry.npmjs.org/event-stream/-/event-stream-3.3.4.tgz#4ab4c9a0f5a54db9338b4c34d86bfce8f4b35571"
+  resolved "https://registry.npmjs.org/event-stream/-/event-stream-3.3.4.tgz#4ab4c9a0f5a54db9338b4c34d86bfce8f4b35571"
   integrity sha1-SrTJoPWlTbkzi0w02Gv86PSzVXE=
   dependencies:
     duplexer "~0.1.1"
